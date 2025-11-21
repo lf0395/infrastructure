@@ -1,0 +1,16 @@
+[sshd]
+enabled = true
+port = 22
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 5
+bantime = 3600
+findtime = 600
+
+[nginx-404]
+enabled = true
+filter = nginx-404
+logpath = /var/log/nginx/access.log
+maxretry = 10
+bantime = 3600
+findtime = 600

@@ -1,0 +1,145 @@
+# HTTP Redirect → HTTPS
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name diefrauenraths.de monit.diefrauenraths.de filebrowser.diefrauenraths.de;
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS für diefrauenraths.de
+server {
+    listen 443 ssl http2 default_server;
+    listen [::]:443 ssl http2 default_server;
+    server_name diefrauenraths.de;
+
+    # Limits aktivieren – nur hier!
+#    limit_req zone=req_limit_per_ip burst=30 nodelay;
+#    limit_conn conn_limit_per_ip 10;
+
+    # ✅ Eigene Logs
+    access_log /var/log/nginx/diefrauenraths.de.access.log;
+    error_log  /var/log/nginx/diefrauenraths.de.error.log;
+
+    include snippets/self-signed.conf;
+    include snippets/ssl-params.conf;
+
+    ssl_certificate     /etc/nginx/ssl/diefrauenraths.de/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/diefrauenraths.de/privkey.pem;
+
+#    root /var/www/html;
+#    index index.php;
+
+#    location / {
+#        try_files $uri $uri/ =404;
+#    }
+
+#    location ~ \.php$ {
+#        include snippets/fastcgi-php.conf;
+#        fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+#    }
+    location / {
+        proxy_pass https://192.168.178.121:8444/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_ssl_verify off;
+    }
+
+    location /auth/ {
+        proxy_pass https://192.168.178.121:8443/;
+        proxy_ssl_verify off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Port 443;
+        proxy_http_version 1.1;
+        # Redirects von Keycloak (z.B. Login) wieder auf /auth/ mappen
+#        proxy_redirect https://192.168.178.121:8443/ /auth/;
+
+        # Wichtig, damit Cookies nicht nur für /auth/ gelten
+#        proxy_cookie_path / /;
+    }
+
+    location ~ ^/(health|metrics) {
+        proxy_pass https://192.168.178.121:9000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /rentalmanagement/ {
+        proxy_pass https://192.168.178.121:8080/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_ssl_verify off;
+    }
+
+    location /rentalmanagement-ui/ {
+        proxy_pass https://192.168.178.121:9443/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_ssl_verify off;
+    }
+}
+
+# HTTPS für monit.diefrauenraths.de (Reverse Proxy Beispiel)
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name monit.diefrauenraths.de;
+
+    # ✅ Eigene Logs
+    access_log /var/log/nginx/diefrauenraths.de.access.log;
+    error_log  /var/log/nginx/diefrauenraths.de.error.log;
+
+    include snippets/self-signed.conf;
+    include snippets/ssl-params.conf;
+
+    ssl_certificate     /etc/nginx/ssl/diefrauenraths.de/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/diefrauenraths.de/privkey.pem;
+
+    location / {
+        proxy_pass http://192.168.178.121:2812;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# HTTPS für filebrowser.diefrauenraths.de (Reverse Proxy Beispiel)
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name filebrowser.diefrauenraths.de;
+
+    # ✅ Eigene Logs
+    access_log /var/log/nginx/diefrauenraths.de.access.log;
+    error_log  /var/log/nginx/diefrauenraths.de.error.log;
+
+    include snippets/self-signed.conf;
+    include snippets/ssl-params.conf;
+
+    ssl_certificate     /etc/nginx/ssl/diefrauenraths.de/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/diefrauenraths.de/privkey.pem;
+
+    location / {
+        proxy_pass http://192.168.178.121/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_request_buffering off;
+        proxy_max_temp_file_size 0;
+        proxy_read_timeout  3600s;
+        proxy_send_timeout  3600s;
+        proxy_buffering      off;
+    }
+}

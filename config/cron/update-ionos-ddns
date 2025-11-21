@@ -1,0 +1,2 @@
+# Cronjob für IONOS DDNS Wrapper
+*/5 * * * * root /usr/local/bin/update-ionos-ddns-wrapper.sh >> /var/log/update-ionos-ddns.log 2>&1
