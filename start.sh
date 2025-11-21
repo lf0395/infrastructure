@@ -19,7 +19,11 @@ echo "###################################"
 echo "### Installing nginx ###"
 echo "###################################"
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nginx
+sudo cp -r "$REPO_DIR/config/nginx/snippets/" /etc/nginx/snippets/
 sudo cp -r "$REPO_DIR/config/nginx/ssl/" /etc/nginx/ssl/
+sudo mv /etc/nginx/ssl/larsfrauenrath.crt /etc/ssl/certs/larsfrauenrath.crt
+sudo mv /etc/nginx/ssl/larsfrauenrath.key /etc/ssl/private/larsfrauenrath.key;
+sudo mv /etc/nginx/ssl/dhparam.pem /etc/ssl/certs/dhparam.pem;
 sudo cp "$REPO_DIR/config/nginx/diefrauenraths.de" /etc/nginx/sites-available/
 sudo ln -s /etc/nginx/sites-available/diefrauenraths.de /etc/nginx/sites-enabled/diefrauenraths.de
 sudo cp "$REPO_DIR/config/nginx/status" /etc/nginx/sites-available/
