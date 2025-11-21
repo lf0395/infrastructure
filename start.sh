@@ -8,25 +8,33 @@ REPO_DIR=$(dirname "$(realpath "$0")")
 sudo apt-get update
 sudo apt-get upgrade --yes
 
+echo "###################################"
 echo "### Disable swap ###"
+echo "###################################"
 sudo systemctl mask dev-zram0.swap
 sudo systemctl mask systemd-zram-setup@zram0.service
 sudo systemctl daemon-reload
 
+echo "###################################"
 echo "### Installing nginx ###"
-sudo apt-get install -y nginx
+echo "###################################"
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nginx
 sudo systemctl enable nginx
 sudo systemctl start nginx
 
+echo "###################################"
 echo "### Installing fail2ban ###"
-sudo apt-get install -y fail2ban
+echo "###################################"
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y fail2ban
 sudo cp "$REPO_DIR/config/fail2ban/jail.local" /etc/fail2ban/jail.local
 sudo cp "$REPO_DIR/config/fail2ban/filter/nginx-404.conf" /etc/fail2ban/filter.d/nginx-404.conf
 sudo systemctl enable fail2ban
 sudo systemctl start fail2ban
 
+echo "###################################"
 echo "### Installing firewall ###"
-sudo apt-get install -y ufw
+echo "###################################"
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ufw
 # UFW Reset (alle alten Regeln löschen)
 sudo ufw --force reset
 
@@ -44,7 +52,9 @@ sudo ufw allow 443/tcp
 sudo ufw --force enable
 
 # --- Cronjobs einrichten ---
+echo "###################################"
 echo "Installiere Cronjobs..."
+echo "###################################"
 CRON_DIR="$REPO_DIR/config/cron"
 
 sudo cp "$CRON_DIR/update-ionos-ddns.sh" /usr/local/bin/update-ionos-ddns.sh
@@ -68,3 +78,8 @@ sudo chmod 644 /etc/cron.d/*
 sudo systemctl restart cron || true
 echo "Cronjobs installiert:"
 ls -l /etc/cron.d/
+
+
+echo "###################################"
+echo "Ende"
+echo "###################################"
