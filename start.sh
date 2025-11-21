@@ -1,5 +1,8 @@
 #!/bin/sh
 set -e
+if [ -f "$ENV_FILE" ]; then
+    export $(grep -v '^#' "$ENV_FILE" | xargs)
+fi
 REPO_DIR=$(dirname "$(realpath "$0")")
 
 sudo apt-get update
