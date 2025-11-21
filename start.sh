@@ -65,13 +65,14 @@ echo "###################################"
 CRON_DIR="$REPO_DIR/config/cron"
 
 sudo cp "$CRON_DIR/update-ionos-ddns.sh" /usr/local/bin/update-ionos-ddns.sh
-sudo chmod 644 /usr/local/bin/update-ionos-ddns.sh
+sudo chmod +x /usr/local/bin/update-ionos-ddns.sh
 sudo cp "$CRON_DIR/update-ionos-ddns-wrapper.sh" /usr/local/bin/update-ionos-ddns-wrapper.sh
-sudo chmod 644 /usr/local/bin/update-ionos-ddns-wrapper.sh
+sudo chmod +x /usr/local/bin/update-ionos-ddns-wrapper.sh
+sudo mkdir -p /var/www/status
 sudo cp "$CRON_DIR/update-status-json.sh" /usr/local/bin/update-status-json.sh
-sudo chmod 644 /usr/local/bin/update-status-json.sh
+sudo chmod +x /usr/local/bin/update-status-json.sh
 sudo cp "$CRON_DIR/update-status-json-wrapper.sh" /usr/local/bin/update-status-json-wrapper.sh
-sudo chmod 644 /usr/local/bin/update-status-json-wrapper.sh
+sudo chmod +x /usr/local/bin/update-status-json-wrapper.sh
 if [ "$IONOS_DDNS_ACTIVATE" = "true" ]; then
   echo "IONOS DDNS aktiviert, Cronjob wird gesetzt."
   sudo cp "$CRON_DIR/update-ionos-ddns" /etc/cron.d/
