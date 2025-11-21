@@ -97,7 +97,43 @@ sudo systemctl restart cron || true
 echo "Cronjobs installiert:"
 ls -l /etc/cron.d/
 
+echo "###################################"
+echo "Desktop, Druck und andere unnötige Services deaktivieren"
+echo "###################################"
+sudo systemctl disable user@1000.service
+sudo systemctl stop user@1000.service
+sudo systemctl disable user-runtime-dir@1000.service
+sudo systemctl stop user-runtime-dir@1000.service
+# GUI / Display Manager
+sudo systemctl disable lightdm.service
+sudo systemctl stop lightdm.service
+
+# Audio / Test
+sudo systemctl disable glamor-test.service
+sudo systemctl stop glamor-test.service
+sudo systemctl disable rp1-test.service
+sudo systemctl stop rp1-test.service
+sudo systemctl disable alsa-restore.service
+sudo systemctl stop alsa-restore.service
+
+# Drucker
+sudo systemctl disable cups.service
+sudo systemctl stop cups.service
+sudo systemctl disable cups-browsed.service
+sudo systemctl stop cups-browsed.service
+sudo systemctl disable cups.path
+sudo systemctl stop cups.path
+
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:8081/status.json")
+if [ "$HTTP_STATUS" -eq 200 ]; then
+    echo "Health check OK: HTTP $HTTP_STATUS"
+else
+    echo "Health check FAILED: HTTP $HTTP_STATUS"
+    exit 1  # Skript abbrechen
+fi
 
 echo "###################################"
-echo "Ende"
+echo "Konfiguration abgeschlossen. Reboot wird in 10 Sekunden ausgeführt."
 echo "###################################"
+sleep 10
+sudo reboot
