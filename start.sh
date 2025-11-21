@@ -41,6 +41,13 @@ sudo ufw --force reset
 # Standardregeln: alles blocken
 sudo ufw default deny incoming
 sudo ufw default deny outgoing
+# DNS für Namensauflösung
+sudo ufw allow out 53/tcp
+sudo ufw allow out 53/udp
+
+# HTTPS für Git, apt etc.
+sudo ufw allow out 443/tcp
+sudo ufw allow out 80/tcp
 
 # SSH nur vom Heimnetz erlauben
 sudo ufw allow from 192.168.178.0/24 to any port 22 proto tcp
