@@ -20,7 +20,7 @@ echo "### Installing nginx ###"
 echo "###################################"
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nginx
 sudo cp -r "$REPO_DIR/config/nginx/snippets/" /etc/nginx/snippets/
-sudo cp -r "$REPO_DIR/config/nginx/ssl/" /etc/nginx/ssl/
+sudo cp -r "$REPO_DIR/config/nginx/ssl/" /etc/nginx/
 sudo mv /etc/nginx/ssl/larsfrauenrath.crt /etc/ssl/certs/larsfrauenrath.crt
 sudo mv /etc/nginx/ssl/larsfrauenrath.key /etc/ssl/private/larsfrauenrath.key;
 sudo mv /etc/nginx/ssl/dhparam.pem /etc/ssl/certs/dhparam.pem;
