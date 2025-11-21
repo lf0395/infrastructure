@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-API_KEY="1e1e19837f784668aad90c9531810067.zz9hGnM-RhBf5OLoQldZjsCxEE2j3jJgyoMGzGorD4S1Omn6Fr4c7m28Xxe5xAW4VTU4TykYJy8UULJqsQ5oaw"  # Trage hier deinen Ionos API-Key ein
+API_KEY=""  # Trage hier deinen Ionos API-Key ein
 BASE_URL="https://api.hosting.ionos.com/dns/v1"
 TTL=3600
-DOMAIN_ZONE="diefrauenraths.de"
-TARGET_DOMAINS=("diefrauenraths.de" "filebrowser.diefrauenraths.de" "www.diefrauenraths.de" "monit.diefrauenraths.de" "collabora.diefrauenraths.de" "auth.diefrauenraths.de" "apps.diefrauenraths.de")
+DOMAIN_ZONE=""
+TARGET_DOMAINS=("")
 
 # Aktuelle IPs
 IP4=$(curl -s https://ipv4.icanhazip.com)
