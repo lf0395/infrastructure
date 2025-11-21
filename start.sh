@@ -24,6 +24,7 @@ sudo cp "$REPO_DIR/config/nginx/diefrauenraths.de" /etc/nginx/sites-available/
 sudo ln -s /etc/nginx/sites-available/diefrauenraths.de /etc/nginx/sites-enabled/diefrauenraths.de
 sudo cp "$REPO_DIR/config/nginx/status" /etc/nginx/sites-available/
 sudo ln -s /etc/nginx/sites-available/status /etc/nginx/sites-enabled/status
+sudo rm /etc/nginx/sites-enabled/default
 sudo systemctl enable nginx
 sudo systemctl start nginx
 
