@@ -21,7 +21,7 @@ echo "###################################"
 echo "### Installing nginx ###"
 echo "###################################"
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nginx
-sudo cp -r "$REPO_DIR/config/nginx/snippets/" /etc/nginx/snippets/
+sudo cp -r "$REPO_DIR/config/nginx/snippets/" /etc/nginx/
 sudo cp -r "$REPO_DIR/config/nginx/ssl/" /etc/nginx/
 sudo mv /etc/nginx/ssl/larsfrauenrath.crt /etc/ssl/certs/larsfrauenrath.crt
 sudo mv /etc/nginx/ssl/larsfrauenrath.key /etc/ssl/private/larsfrauenrath.key;
@@ -31,6 +31,7 @@ sudo ln -s /etc/nginx/sites-available/diefrauenraths.de /etc/nginx/sites-enabled
 sudo cp "$REPO_DIR/config/nginx/status" /etc/nginx/sites-available/
 sudo ln -s /etc/nginx/sites-available/status /etc/nginx/sites-enabled/status
 sudo rm /etc/nginx/sites-enabled/default
+sudo systemctl stop nginx
 sudo systemctl enable nginx
 sudo systemctl start nginx
 
@@ -49,6 +50,7 @@ echo "###################################"
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ufw
 # UFW Reset (alle alten Regeln löschen)
 sudo ufw --force reset
+sudo ufw --force disable
 
 # Standardregeln: alles blocken
 sudo ufw default deny incoming
@@ -66,9 +68,6 @@ sudo ufw allow from 192.168.178.0/24 to any port 22 proto tcp
 
 # HTTPS für alle erlauben
 sudo ufw allow 443/tcp
-
-# UFW aktivieren
-sudo ufw --force enable
 
 # --- Cronjobs einrichten ---
 echo "###################################"
@@ -165,4 +164,6 @@ echo "###################################"
 echo "Konfiguration abgeschlossen. Reboot wird in 10 Sekunden ausgeführt."
 echo "###################################"
 sleep 10
+# UFW aktivieren
+sudo ufw --force enable
 sudo reboot
