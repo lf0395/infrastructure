@@ -11,6 +11,11 @@ sudo apt-get update
 sudo apt-get upgrade --yes
 
 echo "###################################"
+echo "### Install jq ###"
+echo "###################################"
+sudo apt-get install -y jq
+
+echo "###################################"
 echo "### Disable swap ###"
 echo "###################################"
 sudo systemctl mask dev-zram0.swap
@@ -65,6 +70,17 @@ sudo ufw allow out 80/tcp
 
 # SSH nur vom Heimnetz erlauben
 sudo ufw allow from 192.168.178.0/24 to any port 22 proto tcp
+
+# Docker Services freischalten
+sudo ufw allow out to 192.168.178.0/24 port 8443 proto tcp
+sudo ufw allow out to 192.168.178.0/24 port 9443 proto tcp
+sudo ufw allow out to 192.168.178.0/24 port 8444 proto tcp
+sudo ufw allow out to 192.168.178.0/24 port 9000 proto tcp
+sudo ufw allow out to 192.168.178.0/24 port 9080 proto tcp
+sudo ufw allow out to 192.168.178.0/24 port 8080 proto tcp
+
+# 8081 aus dem internen Netz erlauben
+sudo ufw allow from 192.168.178.0/24 to any port 8081 proto tcp
 
 # HTTPS für alle erlauben
 sudo ufw allow 443/tcp
@@ -123,25 +139,25 @@ sudo systemctl stop cups.path
 # Create user if not exist
 if ! id "$NEW_USER" &>/dev/null; then
     echo "→ Creating user $NEW_USER ..."
-    useradd -m -s /bin/bash "$NEW_USER"
+    sudo useradd -m -s /bin/bash "$NEW_USER"
 fi
 
 # Add to sudo group
-usermod -aG sudo "$NEW_USER"
+sudo usermod -aG sudo "$NEW_USER"
 
 # Passwordless sudo
-echo "$NEW_USER ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/"$NEW_USER"
-chmod 440 /etc/sudoers.d/"$NEW_USER"
+sudo echo "$NEW_USER ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/"$NEW_USER"
+sudo chmod 440 /etc/sudoers.d/"$NEW_USER"
 
 ### Configuring SSH Key Authentication ###
 if [ -f "$SSH_KEY_FILE" ]; then
     echo "→ Installing SSH authorized key..."
 
-    mkdir -p /home/pi/.ssh
-    cat "$SSH_KEY_FILE" >> /home/pi/.ssh/authorized_keys
-    chmod 700 /home/pi/.ssh
-    chmod 600 /home/pi/.ssh/authorized_keys
-    chown -R pi:pi /home/pi/.ssh
+    sudo -u "$NEW_USER" mkdir -p /home/"$NEW_USER"/.ssh
+    sudo -u "$NEW_USER" tee -a /home/"$NEW_USER"/.ssh/authorized_keys < "$SSH_KEY_FILE"
+    sudo -u "$NEW_USER" chmod 700 /home/"$NEW_USER"/.ssh
+    sudo -u "$NEW_USER" chmod 600 /home/"$NEW_USER"/.ssh/authorized_keys
+    sudo -u "$NEW_USER" chown -R "$NEW_USER":"$NEW_USER" /home/"$NEW_USER"/.ssh
 
     # Optional: Passwortlogin deaktivieren
     # sed -i 's/^#*PasswordAuthentication .*/PasswordAuthentication no/' /etc/ssh/sshd_config
@@ -152,6 +168,7 @@ else
     echo "⚠️ No SSH key file found at $SSH_KEY_FILE — skipping"
 fi
 
+sleep 10
 HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:8081/status.json")
 if [ "$HTTP_STATUS" -eq 200 ]; then
     echo "Health check OK: HTTP $HTTP_STATUS"
