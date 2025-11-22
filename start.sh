@@ -1,9 +1,11 @@
 #!/bin/sh
 set -e
+REPO_DIR=$(dirname "$(realpath "$0")")
+ENV_FILE="$REPO_DIR/config/.env"
+CRON_DIR="$REPO_DIR/config/cron"
 if [ -f "$ENV_FILE" ]; then
     export $(grep -v '^#' "$ENV_FILE" | xargs)
 fi
-REPO_DIR=$(dirname "$(realpath "$0")")
 
 sudo apt-get update
 sudo apt-get upgrade --yes
@@ -72,7 +74,6 @@ sudo ufw --force enable
 echo "###################################"
 echo "Installiere Cronjobs..."
 echo "###################################"
-CRON_DIR="$REPO_DIR/config/cron"
 
 sudo cp "$CRON_DIR/update-ionos-ddns.sh" /usr/local/bin/update-ionos-ddns.sh
 sudo chmod +x /usr/local/bin/update-ionos-ddns.sh
@@ -100,10 +101,6 @@ ls -l /etc/cron.d/
 echo "###################################"
 echo "Desktop, Druck und andere unnötige Services deaktivieren"
 echo "###################################"
-sudo systemctl disable user@1000.service
-sudo systemctl stop user@1000.service
-sudo systemctl disable user-runtime-dir@1000.service
-sudo systemctl stop user-runtime-dir@1000.service
 # GUI / Display Manager
 sudo systemctl disable lightdm.service
 sudo systemctl stop lightdm.service
@@ -123,6 +120,38 @@ sudo systemctl disable cups-browsed.service
 sudo systemctl stop cups-browsed.service
 sudo systemctl disable cups.path
 sudo systemctl stop cups.path
+
+# Create user if not exist
+if ! id "$NEW_USER" &>/dev/null; then
+    echo "→ Creating user $NEW_USER ..."
+    useradd -m -s /bin/bash "$NEW_USER"
+fi
+
+# Add to sudo group
+usermod -aG sudo "$NEW_USER"
+
+# Passwordless sudo
+echo "$NEW_USER ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/"$NEW_USER"
+chmod 440 /etc/sudoers.d/"$NEW_USER"
+
+### Configuring SSH Key Authentication ###
+if [ -f "$SSH_KEY_FILE" ]; then
+    echo "→ Installing SSH authorized key..."
+
+    mkdir -p /home/pi/.ssh
+    cat "$SSH_KEY_FILE" >> /home/pi/.ssh/authorized_keys
+    chmod 700 /home/pi/.ssh
+    chmod 600 /home/pi/.ssh/authorized_keys
+    chown -R pi:pi /home/pi/.ssh
+
+    # Optional: Passwortlogin deaktivieren
+    # sed -i 's/^#*PasswordAuthentication .*/PasswordAuthentication no/' /etc/ssh/sshd_config
+    # systemctl restart ssh
+
+    echo "SSH key was installed successfully 🎉"
+else
+    echo "⚠️ No SSH key file found at $SSH_KEY_FILE — skipping"
+fi
 
 HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:8081/status.json")
 if [ "$HTTP_STATUS" -eq 200 ]; then
